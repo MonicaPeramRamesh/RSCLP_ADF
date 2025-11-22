@@ -51,10 +51,10 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@greater(activity('get_sales_file_details').output.childItems,0)",
+						"value": "@greater(length(activity('get_sales_file_details').output.childItems), 0)\n",
 						"type": "Expression"
 					},
-					"ifTrueActivities": [
+					"ifFalseActivities": [
 						{
 							"name": "set_filecount",
 							"type": "SetVariable",
@@ -72,13 +72,61 @@
 								}
 							}
 						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set_file_array",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "sales_files_array",
+								"value": {
+									"value": "@activity('get_sales_file_details').output.childItems",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Daily_Sales_Validation",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "set_file_array",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Daily_Sales_Validation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"sales_file_array": {
+										"value": "@variables('sales_files_array')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
 					]
 				}
 			}
 		],
 		"variables": {
 			"sales_files_array": {
-				"type": "Integer"
+				"type": "Array"
 			}
 		},
 		"annotations": []
