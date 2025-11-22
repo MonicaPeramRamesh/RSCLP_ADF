@@ -1,0 +1,9 @@
+{
+	"name": "rsmas-prod-we-adf",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "15cae1c7-f317-44aa-a6a8-770a53582f6e",
+		"tenantId": "f3a01bdc-dff0-4e9a-aae3-d62d4b296ab0"
+	}
+}
