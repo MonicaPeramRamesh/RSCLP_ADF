@@ -2,10 +2,10 @@
 	"name": "AzureDatabricks_ls",
 	"properties": {
 		"parameters": {
-			"clusterVersion": {
+			"cluster_version": {
 				"type": "string"
 			},
-			"clusterNodeType": {
+			"cluster_nodetype": {
 				"type": "string"
 			}
 		},
@@ -21,12 +21,12 @@
 				},
 				"secretName": "adf-token"
 			},
-			"newClusterNodeType": "@linkedService().clusterNodeType",
+			"newClusterNodeType": "@linkedService().cluster_nodetype",
 			"newClusterNumOfWorker": "1",
 			"newClusterSparkEnvVars": {
 				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 			},
-			"newClusterVersion": "@linkedService().clusterVersion",
+			"newClusterVersion": "@linkedService().cluster_version",
 			"clusterOption": "Fixed",
 			"newClusterInitScripts": []
 		}
