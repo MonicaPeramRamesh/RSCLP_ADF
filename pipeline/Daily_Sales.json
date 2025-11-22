@@ -56,18 +56,21 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "set_filecount",
-							"type": "SetVariable",
+							"name": "no_sales_file_alert",
+							"type": "WebActivity",
 							"dependsOn": [],
 							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
 								"secureOutput": false,
 								"secureInput": false
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "sales_files_array",
-								"value": {
-									"value": "@activity('get_sales_file_details').output.childItems",
+								"method": "POST",
+								"body": {
+									"value": "@json(concat('{\n    \"folderPath\": \"', concat('source/daily_sales/', formatDateTime(utcNow(), 'yyyy-MM-dd')), '\",\n    \"message\": \"No files found in the folder today\",\n    \"timestamp\": \"', utcNow(), '\"\n}'))\n",
 									"type": "Expression"
 								}
 							}
@@ -84,7 +87,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "sales_files_array",
+								"variableName": "sales_file_array",
 								"value": {
 									"value": "@activity('get_sales_file_details').output.childItems",
 									"type": "Expression"
@@ -114,7 +117,7 @@
 								"waitOnCompletion": true,
 								"parameters": {
 									"sales_file_array": {
-										"value": "@variables('sales_files_array')",
+										"value": "@variables('sales_file_array')",
 										"type": "Expression"
 									}
 								}
@@ -125,7 +128,7 @@
 			}
 		],
 		"variables": {
-			"sales_files_array": {
+			"sales_file_array": {
 				"type": "Array"
 			}
 		},
