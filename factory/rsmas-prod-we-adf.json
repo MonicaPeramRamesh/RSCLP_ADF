@@ -1,5 +1,13 @@
 {
 	"name": "rsmas-prod-we-adf",
+	"properties": {
+		"globalParameters": {
+			"cluster_nodetype": {
+				"type": "string",
+				"value": "Standard_D4s_v3"
+			}
+		}
+	},
 	"location": "westeurope",
 	"identity": {
 		"type": "SystemAssigned",
