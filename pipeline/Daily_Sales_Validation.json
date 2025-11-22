@@ -1,0 +1,243 @@
+{
+	"name": "Daily_Sales_Validation",
+	"properties": {
+		"activities": [
+			{
+				"name": "iterate_sales_files",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.sales_file_array",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "get_metadata_for_file",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "dailysales_file",
+									"type": "DatasetReference",
+									"parameters": {
+										"date": {
+											"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')\n",
+											"type": "Expression"
+										},
+										"file_name": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"columnCount",
+									"structure"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "coulm_validation_checks",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "get_metadata_for_file",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(\n    equals(activity('get_metadata_for_file').output.columnCount, 5),\n    and(\n        contains(string(activity('get_metadata_for_file').output.structure), 'TransactionID'),\n        and(\n            contains(string(activity('get_metadata_for_file').output.structure), 'TransactionDateTime'),\n            and(\n                contains(string(activity('get_metadata_for_file').output.structure), 'StoreID'),\n                and(\n                    contains(string(activity('get_metadata_for_file').output.structure), 'ProductDetailsJson'),\n                    contains(string(activity('get_metadata_for_file').output.structure), 'PaymentMethod')\n                )\n            )\n        )\n    )\n)\n",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "invalid_sales_files",
+										"type": "AppendVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "invalid_sales_files",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "valid_sales_files",
+										"type": "AppendVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "valid_sales_files",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "all_sales_files_valid_check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "iterate_sales_files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(\n    length(variables('valid_sales_files')),\n    length(pipeline().parameters.sales_file_array)\n)\n",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "invalid_sales",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "pipelineReturnValue",
+								"value": [
+									{
+										"key": "invalid_sales",
+										"value": {
+											"type": "String",
+											"content": "Invalid Daily Sales Files Present."
+										}
+									}
+								],
+								"setSystemVariable": true
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "daily_sales_job",
+							"type": "DatabricksJob",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"jobId": "362893909581191"
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureDatabricks_ls",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"cluster_version": {
+										"value": "@pipeline().globalParameters.cluster_version",
+										"type": "Expression"
+									},
+									"cluster_nodetype": {
+										"value": "@pipeline().globalParameters.cluster_nodetype",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "update_inventory",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "daily_sales_job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[MergeInventory]",
+								"storedProcedureParameters": {
+									"ProcessType": {
+										"value": {
+											"value": "Daily Sales",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServer_ls",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_username": {
+										"value": "@pipeline().globalParameters.db_username",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"sales_file_array": {
+				"type": "array"
+			}
+		},
+		"variables": {
+			"valid_sales_files": {
+				"type": "Array"
+			},
+			"invalid_sales_files": {
+				"type": "Array"
+			}
+		},
+		"annotations": []
+	}
+}
