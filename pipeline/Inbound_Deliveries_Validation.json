@@ -1,0 +1,251 @@
+{
+	"name": "Inbound_Deliveries_Validation",
+	"properties": {
+		"activities": [
+			{
+				"name": "iterate_sales_files",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.sales_file_array",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "get_metadata_for_file",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "inbound_deliveries_file",
+									"type": "DatasetReference",
+									"parameters": {
+										"date": {
+											"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')\n",
+											"type": "Expression"
+										},
+										"file_name": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"columnCount",
+									"structure"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "coulm_validation_checks",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "get_metadata_for_file",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(\n    equals(activity('get_metadata_for_file').output.columnCount, 12),\n    and(\n        contains(string(activity('get_metadata_for_file').output.structure), 'ReceiptID'),\n        and(\n            contains(string(activity('get_metadata_for_file').output.structure), 'ShipmentDate'),\n            and(\n                contains(string(activity('get_metadata_for_file').output.structure), 'StoreID'),\n                and(\n                    contains(string(activity('get_metadata_for_file').output.structure), 'SupplierID'),\n                    and(\n                        contains(string(activity('get_metadata_for_file').output.structure), 'ProductID'),\n                        and(\n                            contains(string(activity('get_metadata_for_file').output.structure), 'ProductName'),\n                            and(\n                                contains(string(activity('get_metadata_for_file').output.structure), 'QuantityShipped'),\n                                and(\n                                    contains(string(activity('get_metadata_for_file').output.structure), 'UnitOfMeasure'),\n                                    and(\n                                        contains(string(activity('get_metadata_for_file').output.structure), 'UnitCost'),\n                                        and(\n                                            contains(string(activity('get_metadata_for_file').output.structure), 'TotalCost'),\n                                            and(\n                                                contains(string(activity('get_metadata_for_file').output.structure), 'ExpiryDate'),\n                                                contains(string(activity('get_metadata_for_file').output.structure), 'Remarks')\n                                            )\n                                        )\n                                    )\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n    )\n)\n",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "invalid_deliveries_files",
+										"type": "AppendVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "invalid_deliveries_file",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "valid_deliveries_files",
+										"type": "AppendVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "valid_deliveries_files",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "all_deliveries_files_valid_check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "iterate_sales_files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(\n    length(variables('valid_deliveries_files')),\n    length(pipeline().parameters.sales_file_array)\n)\n",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "invalid_deliveries_alert",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": {
+									"value": "@pipeline().parameters.error_url",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Daily Sales Error - Invalid Daily Sales File - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Please find the Invalid Sales Files for the day: ',\n                join(variables('invalid_deliveries_file'), ', '),\n            '\"',\n        '}'\n    )\n)\n",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "deliveries_sales_job",
+							"type": "DatabricksJob",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"jobId": "735580340076391"
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureDatabricks_ls",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"cluster_version": {
+										"value": "@pipeline().globalParameters.cluster_version",
+										"type": "Expression"
+									},
+									"cluster_nodetype": {
+										"value": "@pipeline().globalParameters.cluster_nodetype",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "update_inventory",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "deliveries_sales_job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[MergeInventory]",
+								"storedProcedureParameters": {
+									"ProcessType": {
+										"value": {
+											"value": "Inbound Deliveries",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServer_ls",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_username": {
+										"value": "@pipeline().globalParameters.db_username",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"sales_file_array": {
+				"type": "array"
+			},
+			"error_url": {
+				"type": "string"
+			},
+			"error_message": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"valid_deliveries_files": {
+				"type": "Array"
+			},
+			"invalid_deliveries_file": {
+				"type": "Array"
+			}
+		},
+		"annotations": []
+	}
+}
