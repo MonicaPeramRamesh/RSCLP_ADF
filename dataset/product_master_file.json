@@ -1,0 +1,38 @@
+{
+	"name": "product_master_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage_ls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"date": {
+				"type": "string"
+			},
+			"file_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().file_name",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@concat('product/product_excel/',dataset().date)",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "master-data",
+					"type": "Expression"
+				}
+			},
+			"sheetIndex": 0
+		},
+		"schema": []
+	}
+}
