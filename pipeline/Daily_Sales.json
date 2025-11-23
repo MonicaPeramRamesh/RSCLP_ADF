@@ -26,10 +26,12 @@
 						}
 					},
 					"fieldList": [
-						"childItems"
+						"childItems",
+						"exists"
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -51,7 +53,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@greater(length(activity('get_sales_file_details').output.childItems), 0)\n",
+						"value": "@and(\n    activity('get_sales_file_details').output.exists,\n    greater(length(activity('get_sales_file_details').output.childItems), 0)\n)\n",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -69,8 +71,12 @@
 							"userProperties": [],
 							"typeProperties": {
 								"method": "POST",
+								"url": {
+									"value": "@pipeline().parameters.error_url",
+									"type": "Expression"
+								},
 								"body": {
-									"value": "@json(concat('{\n    \"folderPath\": \"', concat('source/daily_sales/', formatDateTime(utcNow(), 'yyyy-MM-dd')), '\",\n    \"message\": \"No files found in the folder today\",\n    \"timestamp\": \"', utcNow(), '\"\n}'))\n",
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Daily Sales Error - No Sales Files Found - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"No Daily Sales files found for the day.\"',\n        '}'\n    )\n)\n",
 									"type": "Expression"
 								}
 							}
@@ -119,6 +125,14 @@
 									"sales_file_array": {
 										"value": "@variables('sales_file_array')",
 										"type": "Expression"
+									},
+									"error_url": {
+										"value": "@pipeline().parameters.error_url",
+										"type": "Expression"
+									},
+									"error_message": {
+										"value": "@pipeline().parameters.error_message",
+										"type": "Expression"
 									}
 								}
 							}
@@ -127,6 +141,14 @@
 				}
 			}
 		],
+		"parameters": {
+			"error_url": {
+				"type": "string"
+			},
+			"error_message": {
+				"type": "string"
+			}
+		},
 		"variables": {
 			"sales_file_array": {
 				"type": "Array"

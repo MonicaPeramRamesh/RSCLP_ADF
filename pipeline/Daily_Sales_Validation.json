@@ -47,6 +47,7 @@
 								],
 								"storeSettings": {
 									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
 									"enablePartitionDiscovery": false
 								},
 								"formatSettings": {
@@ -125,26 +126,27 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "invalid_sales",
-							"type": "SetVariable",
+							"name": "invalid_sales_alert",
+							"type": "WebActivity",
 							"dependsOn": [],
 							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
 								"secureOutput": false,
 								"secureInput": false
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "pipelineReturnValue",
-								"value": [
-									{
-										"key": "invalid_sales",
-										"value": {
-											"type": "String",
-											"content": "Invalid Daily Sales Files Present."
-										}
-									}
-								],
-								"setSystemVariable": true
+								"method": "POST",
+								"url": {
+									"value": "@pipeline().parameters.error_url",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Daily Sales Error - Invalid Daily Sales File - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Please find the Invalid Sales Files for the day: ',\n                join(variables('invalid_sales_files'), ', '),\n            '\"',\n        '}'\n    )\n)\n",
+									"type": "Expression"
+								}
 							}
 						}
 					],
@@ -228,6 +230,12 @@
 		"parameters": {
 			"sales_file_array": {
 				"type": "array"
+			},
+			"error_url": {
+				"type": "string"
+			},
+			"error_message": {
+				"type": "string"
 			}
 		},
 		"variables": {
