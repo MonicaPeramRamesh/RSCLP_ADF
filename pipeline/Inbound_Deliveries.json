@@ -55,6 +55,32 @@
 						"value": "@and(\n    activity('get_deliveries_file_details').output.exists,\n    greater(length(activity('get_deliveries_file_details').output.childItems), 0)\n)\n",
 						"type": "Expression"
 					},
+					"ifFalseActivities": [
+						{
+							"name": "no_deliveries_file_alert",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": {
+									"value": "@pipeline().parameters.error_url",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Inbound Deliveries Error - No Deliveries Files Found - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"No Inbound Deliveries files found for the day.\"',\n        '}'\n    )\n)\n",
+									"type": "Expression"
+								}
+							}
+						}
+					],
 					"ifTrueActivities": [
 						{
 							"name": "set_file_array",
