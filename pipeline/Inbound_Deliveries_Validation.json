@@ -56,7 +56,7 @@
 							}
 						},
 						{
-							"name": "coulm_validation_checks",
+							"name": "column_validation_checks",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
