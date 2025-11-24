@@ -24,7 +24,8 @@
 					"value": "master-data",
 					"type": "Expression"
 				}
-			}
+			},
+			"firstRowAsHeader": true
 		},
 		"schema": []
 	}

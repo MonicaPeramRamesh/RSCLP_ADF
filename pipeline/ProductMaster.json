@@ -91,7 +91,7 @@
 							}
 						},
 						{
-							"name": "coulm_validation_checks",
+							"name": "column_validation_checks",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -187,7 +187,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "prodictmaster_job",
+							"name": "productmaster_job",
 							"type": "DatabricksJob",
 							"dependsOn": [],
 							"policy": {
@@ -221,7 +221,7 @@
 							"type": "WebActivity",
 							"dependsOn": [
 								{
-									"activity": "prodictmaster_job",
+									"activity": "productmaster_job",
 									"dependencyConditions": [
 										"Failed"
 									]
