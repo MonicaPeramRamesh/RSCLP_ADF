@@ -1,5 +1,5 @@
 {
-	"name": "suppliercostpricehistory_excel",
+	"name": "suppliercostpricehistory_file",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorage_ls",

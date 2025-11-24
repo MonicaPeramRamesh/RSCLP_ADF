@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "get_productmaster_details",
+				"name": "get_supplierpricehistory_details",
 				"type": "GetMetadata",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "product_master",
+						"referenceName": "suppliercostpricehistory_folder",
 						"type": "DatasetReference",
 						"parameters": {
 							"date": {
@@ -37,11 +37,11 @@
 				}
 			},
 			{
-				"name": "iterate_productmaster_files",
+				"name": "iterate_supplierpricehistory_files",
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "get_productmaster_details",
+						"activity": "get_supplierpricehistory_details",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -50,7 +50,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('get_productmaster_details').output.childItems",
+						"value": "@activity('get_supplierpricehistory_details').output.childItems",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -69,10 +69,13 @@
 							"userProperties": [],
 							"typeProperties": {
 								"dataset": {
-									"referenceName": "product_master_file",
+									"referenceName": "suppliercostpricehistory_file",
 									"type": "DatasetReference",
 									"parameters": {
-										"date": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')",
+										"date": {
+											"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')\n",
+											"type": "Expression"
+										},
 										"file_name": {
 											"value": "@item().name",
 											"type": "Expression"
@@ -91,7 +94,7 @@
 							}
 						},
 						{
-							"name": "coulm_validation_checks",
+							"name": "column_validation_checks",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -104,17 +107,17 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(\n    equals(activity('get_metadata_for_file').output.columnCount, 8),\n    and(\n        contains(string(activity('get_metadata_for_file').output.structure), 'ProductID'),\n        and(\n            contains(string(activity('get_metadata_for_file').output.structure), 'ProductName'),\n            and(\n                contains(string(activity('get_metadata_for_file').output.structure), 'Category'),\n                and(\n                    contains(string(activity('get_metadata_for_file').output.structure), 'CategoryID'),\n                    and(\n                        contains(string(activity('get_metadata_for_file').output.structure), 'Description'),\n                        and(\n                            contains(string(activity('get_metadata_for_file').output.structure), 'UnitOfMeasure'),\n                            and(\n                                contains(string(activity('get_metadata_for_file').output.structure), 'StartDate'),\n                                contains(string(activity('get_metadata_for_file').output.structure), 'DeleteFlag')\n                            )\n                        )\n                    )\n                )\n            )\n        )\n    )\n)\n",
+									"value": "@and(\n    equals(activity('get_metadata_for_file').output.columnCount, 8),\n    and(\n        contains(string(activity('get_metadata_for_file').output.structure), 'ProductID'),\n        and(\n            contains(string(activity('get_metadata_for_file').output.structure), 'SupplierID'),\n            and(\n                contains(string(activity('get_metadata_for_file').output.structure), 'SupplierPrice'),\n                and(\n                    contains(string(activity('get_metadata_for_file').output.structure), 'UnitOfMeasure'),\n                    and(\n                        contains(string(activity('get_metadata_for_file').output.structure), 'UpdatedOn'),\n                        and(\n                            contains(string(activity('get_metadata_for_file').output.structure), 'UpdatedBy'),\n                            and(\n                                contains(string(activity('get_metadata_for_file').output.structure), 'UpdateReason'),\n                                contains(string(activity('get_metadata_for_file').output.structure), 'IsActive')\n                            )\n                        )\n                    )\n                )\n            )\n        )\n    )\n)\n",
 									"type": "Expression"
 								},
 								"ifFalseActivities": [
 									{
-										"name": "invalid_productmaster_files",
+										"name": "invalid_supplierpricehistory_files",
 										"type": "AppendVariable",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
-											"variableName": "invalid_productmaster_files",
+											"variableName": "invalid_supplierpricehistory_files",
 											"value": {
 												"value": "@item().name",
 												"type": "Expression"
@@ -124,12 +127,12 @@
 								],
 								"ifTrueActivities": [
 									{
-										"name": "valid_product_master_files",
+										"name": "valid_supplierpricehistory_files",
 										"type": "AppendVariable",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
-											"variableName": "valid_productmaster_files",
+											"variableName": "valid_supplierpricehistory_files",
 											"value": {
 												"value": "@item().name",
 												"type": "Expression"
@@ -143,11 +146,11 @@
 				}
 			},
 			{
-				"name": "all_sales_files_valid_check",
+				"name": "all_supplierpricehistory_files_valid_check",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "iterate_productmaster_files",
+						"activity": "iterate_supplierpricehistory_files",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -156,12 +159,12 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(\n    length(variables('valid_productmaster_files')),\n    length(activity('get_productmaster_details').output.childItems\n)\n)",
+						"value": "@equals(\n    length(variables('valid_supplierpricehistory_files')),\n    length(activity('get_supplierpricehistory_details').output.childItems\n)\n)",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
 						{
-							"name": "invalid_productmaster_alert",
+							"name": "invalid_supplierpricehistory_alert",
 							"type": "WebActivity",
 							"dependsOn": [],
 							"policy": {
@@ -179,7 +182,7 @@
 									"type": "Expression"
 								},
 								"body": {
-									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Product Master Error - Invalid Product Master Excel File - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Please find the Invalid Product Master Excel for the day: ',\n                join(variables('invalid_productmaster_files'), ', '),\n            '\"',\n        '}'\n    )\n)\n",
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Supplier Cost Price History Error - Invalid Supplier Cost Price History Excel File - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Please find the Invalid Supplier Cost Price History Excel for the day: ',\n                join(variables('invalid_supplierpricehistory_files'), ', '),\n            '\"',\n        '}'\n    )\n)\n",
 									"type": "Expression"
 								}
 							}
@@ -187,7 +190,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "prodictmaster_job",
+							"name": "supplierpricehistory_job",
 							"type": "DatabricksJob",
 							"dependsOn": [],
 							"policy": {
@@ -199,7 +202,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"jobId": "440745808710623"
+								"jobId": "514467689306441"
 							},
 							"linkedServiceName": {
 								"referenceName": "AzureDatabricks_ls",
@@ -217,11 +220,11 @@
 							}
 						},
 						{
-							"name": "productmaster_dlt_alert",
+							"name": "supplierpricehistory_dlt_alert",
 							"type": "WebActivity",
 							"dependsOn": [
 								{
-									"activity": "prodictmaster_job",
+									"activity": "supplierpricehistory_job",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -242,7 +245,7 @@
 									"type": "Expression"
 								},
 								"body": {
-									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Product Master Error - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Product Master DLT failed\"',\n        '}'\n    )\n)\n",
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Supplier Cost Price History Error - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Supplier Cost Price History DLT failed\"',\n        '}'\n    )\n)\n",
 									"type": "Expression"
 								}
 							}
@@ -260,10 +263,10 @@
 			}
 		},
 		"variables": {
-			"valid_productmaster_files": {
+			"valid_supplierpricehistory_files": {
 				"type": "Array"
 			},
-			"invalid_productmaster_files": {
+			"invalid_supplierpricehistory_files": {
 				"type": "Array"
 			}
 		},
