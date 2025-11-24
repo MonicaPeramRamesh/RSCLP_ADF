@@ -31,6 +31,7 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -100,7 +101,7 @@
 							}
 						},
 						{
-							"name": "Deliveries_Sales_Validation",
+							"name": "Deliveries_Deliveries_Validation",
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
@@ -121,8 +122,16 @@
 								},
 								"waitOnCompletion": true,
 								"parameters": {
-									"sales_file_array": {
+									"deliveries_file_array": {
 										"value": "@variables('deliveries_file_array')",
+										"type": "Expression"
+									},
+									"error_url": {
+										"value": "@pipeline().parameters.error_url",
+										"type": "Expression"
+									},
+									"error_message": {
+										"value": "@pipeline().parameters.error_message",
 										"type": "Expression"
 									}
 								}

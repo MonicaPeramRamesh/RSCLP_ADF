@@ -9,7 +9,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@pipeline().parameters.sales_file_array",
+						"value": "@pipeline().parameters.deliveries_file_array",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -121,7 +121,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(\n    length(variables('valid_deliveries_files')),\n    length(pipeline().parameters.sales_file_array)\n)\n",
+						"value": "@equals(\n    length(variables('valid_deliveries_files')),\n    length(pipeline().parameters.deliveries_file_array)\n)\n",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -228,7 +228,7 @@
 			}
 		],
 		"parameters": {
-			"sales_file_array": {
+			"deliveries_file_array": {
 				"type": "array"
 			},
 			"error_url": {
