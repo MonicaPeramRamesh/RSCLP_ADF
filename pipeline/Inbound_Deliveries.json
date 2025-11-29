@@ -1,0 +1,159 @@
+{
+	"name": "Inbound_Deliveries",
+	"properties": {
+		"activities": [
+			{
+				"name": "get_deliveries_file_details",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "inbound_deliveries_folder",
+						"type": "DatasetReference",
+						"parameters": {
+							"date": {
+								"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')\n",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"exists",
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "inbound_deliveries_filecount_check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get_deliveries_file_details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n    activity('get_deliveries_file_details').output.exists,\n    greater(length(activity('get_deliveries_file_details').output.childItems), 0)\n)\n",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "no_deliveries_file_alert",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": {
+									"value": "@pipeline().parameters.error_url",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Inbound Deliveries Error - No Deliveries Files Found - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"No Inbound Deliveries files found for the day.\"',\n        '}'\n    )\n)\n",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set_file_array",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "deliveries_file_array",
+								"value": {
+									"value": "@activity('get_deliveries_file_details').output.childItems",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Deliveries_Deliveries_Validation",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "set_file_array",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Inbound_Deliveries_Validation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"deliveries_file_array": {
+										"value": "@variables('deliveries_file_array')",
+										"type": "Expression"
+									},
+									"error_url": {
+										"value": "@pipeline().parameters.error_url",
+										"type": "Expression"
+									},
+									"error_message": {
+										"value": "@pipeline().parameters.error_message",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"error_url": {
+				"type": "string"
+			},
+			"error_message": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"deliveries_file_array": {
+				"type": "Array"
+			}
+		},
+		"annotations": []
+	}
+}

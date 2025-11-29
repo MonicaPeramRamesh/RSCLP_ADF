@@ -1,0 +1,275 @@
+{
+	"name": "SupplierCostPriceHistory",
+	"properties": {
+		"activities": [
+			{
+				"name": "get_supplierpricehistory_details",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "suppliercostpricehistory_folder",
+						"type": "DatasetReference",
+						"parameters": {
+							"date": {
+								"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')\n",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems",
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "iterate_supplierpricehistory_files",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get_supplierpricehistory_details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get_supplierpricehistory_details').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "get_metadata_for_file",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "suppliercostpricehistory_file",
+									"type": "DatasetReference",
+									"parameters": {
+										"date": {
+											"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')\n",
+											"type": "Expression"
+										},
+										"file_name": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"columnCount",
+									"structure"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "column_validation_checks",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "get_metadata_for_file",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(\n    equals(activity('get_metadata_for_file').output.columnCount, 8),\n    and(\n        contains(string(activity('get_metadata_for_file').output.structure), 'ProductID'),\n        and(\n            contains(string(activity('get_metadata_for_file').output.structure), 'SupplierID'),\n            and(\n                contains(string(activity('get_metadata_for_file').output.structure), 'SupplierPrice'),\n                and(\n                    contains(string(activity('get_metadata_for_file').output.structure), 'UnitOfMeasure'),\n                    and(\n                        contains(string(activity('get_metadata_for_file').output.structure), 'UpdatedOn'),\n                        and(\n                            contains(string(activity('get_metadata_for_file').output.structure), 'UpdatedBy'),\n                            and(\n                                contains(string(activity('get_metadata_for_file').output.structure), 'UpdateReason'),\n                                contains(string(activity('get_metadata_for_file').output.structure), 'IsActive')\n                            )\n                        )\n                    )\n                )\n            )\n        )\n    )\n)\n",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "invalid_supplierpricehistory_files",
+										"type": "AppendVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "invalid_supplierpricehistory_files",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "valid_supplierpricehistory_files",
+										"type": "AppendVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "valid_supplierpricehistory_files",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "all_supplierpricehistory_files_valid_check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "iterate_supplierpricehistory_files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(\n    length(variables('valid_supplierpricehistory_files')),\n    length(activity('get_supplierpricehistory_details').output.childItems\n)\n)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "invalid_supplierpricehistory_alert",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": {
+									"value": "@pipeline().parameters.error_url",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Supplier Cost Price History Error - Invalid Supplier Cost Price History Excel File - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Please find the Invalid Supplier Cost Price History Excel for the day: ',\n                join(variables('invalid_supplierpricehistory_files'), ', '),\n            '\"',\n        '}'\n    )\n)\n",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "supplierpricehistory_job",
+							"type": "DatabricksJob",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"jobId": "514467689306441"
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureDatabricks_ls",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"cluster_version": {
+										"value": "@pipeline().globalParameters.cluster_version",
+										"type": "Expression"
+									},
+									"cluster_nodetype": {
+										"value": "@pipeline().globalParameters.cluster_nodetype",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "supplierpricehistory_dlt_alert",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "supplierpricehistory_job",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": {
+									"value": "@pipeline().parameters.error_url",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Supplier Cost Price History Error - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Supplier Cost Price History DLT failed\"',\n        '}'\n    )\n)\n",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"error_url": {
+				"type": "string"
+			},
+			"error_message": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"valid_supplierpricehistory_files": {
+				"type": "Array"
+			},
+			"invalid_supplierpricehistory_files": {
+				"type": "Array"
+			}
+		},
+		"annotations": []
+	}
+}

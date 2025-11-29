@@ -1,0 +1,10 @@
+{
+	"name": "AzureDataLakeStorage_ls",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://rsmasprodneadls.dfs.core.windows.net/"
+		}
+	}
+}

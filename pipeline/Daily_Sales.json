@@ -1,0 +1,159 @@
+{
+	"name": "Daily_Sales",
+	"properties": {
+		"activities": [
+			{
+				"name": "get_sales_file_details",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "dailysales_folder",
+						"type": "DatasetReference",
+						"parameters": {
+							"date": {
+								"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')\n",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems",
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "daily_sales_filecount_check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get_sales_file_details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n    activity('get_sales_file_details').output.exists,\n    greater(length(activity('get_sales_file_details').output.childItems), 0)\n)\n",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "no_sales_file_alert",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": {
+									"value": "@pipeline().parameters.error_url",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Daily Sales Error - No Sales Files Found - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"No Daily Sales files found for the day.\"',\n        '}'\n    )\n)\n",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set_file_array",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "sales_file_array",
+								"value": {
+									"value": "@activity('get_sales_file_details').output.childItems",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Daily_Sales_Validation",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "set_file_array",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Daily_Sales_Validation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"sales_file_array": {
+										"value": "@variables('sales_file_array')",
+										"type": "Expression"
+									},
+									"error_url": {
+										"value": "@pipeline().parameters.error_url",
+										"type": "Expression"
+									},
+									"error_message": {
+										"value": "@pipeline().parameters.error_message",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"error_url": {
+				"type": "string"
+			},
+			"error_message": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"sales_file_array": {
+				"type": "Array"
+			}
+		},
+		"annotations": []
+	}
+}

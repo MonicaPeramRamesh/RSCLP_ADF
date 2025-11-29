@@ -1,0 +1,77 @@
+{
+	"name": "Daily_Profits",
+	"properties": {
+		"activities": [
+			{
+				"name": "daily_profits_job",
+				"type": "DatabricksJob",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"jobId": "508575448499885"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_ls",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"cluster_version": {
+							"value": "@pipeline().globalParameters.cluster_version",
+							"type": "Expression"
+						},
+						"cluster_nodetype": {
+							"value": "@pipeline().globalParameters.cluster_nodetype",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "daily_profits_alert",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "daily_profits_job",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@pipeline().parameters.error_url",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Daily Frofits Error - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Daily Frofits DLT Error.\"',\n        '}'\n    )\n)\n",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"error_url": {
+				"type": "string"
+			},
+			"error_message": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}

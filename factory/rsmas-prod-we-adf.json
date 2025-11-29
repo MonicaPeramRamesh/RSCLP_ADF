@@ -1,5 +1,21 @@
 {
 	"name": "rsmas-prod-we-adf",
+	"properties": {
+		"globalParameters": {
+			"cluster_nodetype": {
+				"type": "string",
+				"value": "Standard_D4s_v3"
+			},
+			"cluster_version": {
+				"type": "string",
+				"value": "15.4.x-scala2.12"
+			},
+			"db_username": {
+				"type": "string",
+				"value": "rsmasprod"
+			}
+		}
+	},
 	"location": "westeurope",
 	"identity": {
 		"type": "SystemAssigned",
