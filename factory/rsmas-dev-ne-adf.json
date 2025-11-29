@@ -9,6 +9,10 @@
 			"cluster_version": {
 				"type": "string",
 				"value": "15.4.x-scala2.12"
+			},
+			"db_username": {
+				"type": "string",
+				"value": "rsmasdev"
 			}
 		}
 	},
