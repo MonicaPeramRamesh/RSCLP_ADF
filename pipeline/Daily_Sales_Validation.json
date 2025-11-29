@@ -164,7 +164,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"jobId": "362893909581191"
+								"jobId": "445778795146334"
 							},
 							"linkedServiceName": {
 								"referenceName": "AzureDatabricks_ls",
@@ -209,6 +209,16 @@
 											"type": "Expression"
 										},
 										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServer_ls",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_username": {
+										"value": "@pipeline().globalParameters.db_username",
+										"type": "Expression"
 									}
 								}
 							}
