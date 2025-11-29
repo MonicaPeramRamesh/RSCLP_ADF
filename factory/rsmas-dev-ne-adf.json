@@ -5,6 +5,10 @@
 			"cluster_nodetype": {
 				"type": "string",
 				"value": "Standard_D4s_v3"
+			},
+			"cluster_version": {
+				"type": "string",
+				"value": "15.4.x-scala2.12"
 			}
 		}
 	},
