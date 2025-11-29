@@ -1,0 +1,9 @@
+{
+	"name": "rsmas-dev-ne-adf",
+	"location": "northeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "b1a4fe9c-a481-41bf-894d-e63a3f1bbc45",
+		"tenantId": "caf1a630-abe1-4c07-beca-acce9a376b40"
+	}
+}
