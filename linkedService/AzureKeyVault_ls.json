@@ -4,7 +4,7 @@
 		"annotations": [],
 		"type": "AzureKeyVault",
 		"typeProperties": {
-			"baseUrl": "https://rsmas-prod-ne-kv.vault.azure.net/"
+			"baseUrl": "https://rsmas-dev-ne-kv.vault.azure.net/"
 		}
 	}
 }
