@@ -211,16 +211,6 @@
 										"type": "String"
 									}
 								}
-							},
-							"linkedServiceName": {
-								"referenceName": "SqlServer_ls",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"db_username": {
-										"value": "@pipeline().globalParameters.db_username",
-										"type": "Expression"
-									}
-								}
 							}
 						}
 					]
