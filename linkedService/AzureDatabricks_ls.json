@@ -12,7 +12,7 @@
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://adb-887384593809515.15.azuredatabricks.net",
+			"domain": "https://adb-1607731763791890.10.azuredatabricks.net",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
