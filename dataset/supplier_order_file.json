@@ -5,25 +5,23 @@
 			"referenceName": "AzureDataLakeStorage_ls",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"date": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "Parquet",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": {
-					"value": "*.parquet",
-					"type": "Expression"
-				},
 				"folderPath": {
-					"value": "@concat('supplier_orders/',formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'))",
+					"value": "@concat('supplier_orders/',dataset().date)",
 					"type": "Expression"
 				},
-				"fileSystem": {
-					"value": "source",
-					"type": "Expression"
-				}
+				"fileSystem": "source"
 			},
-			"compressionCodec": "snappy"
+			"compressionCodec": "none"
 		},
 		"schema": []
 	}
