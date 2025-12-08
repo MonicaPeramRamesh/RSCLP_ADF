@@ -1,0 +1,30 @@
+{
+	"name": "supplier_order_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage_ls",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "*.parquet",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@concat('supplier_orders/',formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'))",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "source",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
