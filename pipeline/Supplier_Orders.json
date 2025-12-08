@@ -42,6 +42,7 @@
 								],
 								"storeSettings": {
 									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
 									"enablePartitionDiscovery": false
 								},
 								"formatSettings": {
@@ -115,6 +116,74 @@
 					},
 					"body": {
 						"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Supplier Order Error - No Orders Files Found - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"No Supplier Order files found for the day.\"',\n        '}'\n    )\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "supplier_order_dlt",
+				"type": "DatabricksJob",
+				"dependsOn": [
+					{
+						"activity": "check_supplier_order_file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"jobId": "674698464895640"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_ls",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"cluster_version": {
+							"value": "@pipeline().globalParameters.cluster_version",
+							"type": "Expression"
+						},
+						"cluster_nodetype": {
+							"value": "@pipeline().globalParameters.cluster_nodetype",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "supplierorder_dlt_failure_alert",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "supplier_order_dlt",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@pipeline().parameters.error_url",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "@json(\n    concat(\n        '{',\n            '\"title\": \"Supplier Order Error - ',\n                formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd'),\n            '\",',\n            '\"text\": \"Supplier Order DLT failed\"',\n        '}'\n    )\n)\n",
 						"type": "Expression"
 					}
 				}
