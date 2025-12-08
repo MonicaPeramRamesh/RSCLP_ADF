@@ -28,7 +28,13 @@
 							"typeProperties": {
 								"dataset": {
 									"referenceName": "supplier_order_file",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"date": {
+											"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'GMT Standard Time'), 'yyyy-MM-dd')\n",
+											"type": "Expression"
+										}
+									}
 								},
 								"fieldList": [
 									"exists",
