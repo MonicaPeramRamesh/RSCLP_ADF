@@ -10,6 +10,9 @@
 			},
 			"workspace_path": {
 				"type": "string"
+			},
+			"keyvault_url": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
@@ -20,7 +23,13 @@
 				"type": "AzureKeyVaultSecret",
 				"store": {
 					"referenceName": "AzureKeyVault_ls",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"keyvault_url": {
+							"value": "@linkedService().keyvault_url",
+							"type": "Expression"
+						}
+					}
 				},
 				"secretName": "adf-token"
 			},
