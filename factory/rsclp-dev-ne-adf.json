@@ -1,0 +1,12 @@
+{
+	"name": "rsclp-dev-ne-adf",
+	"properties": {
+		"globalParameters": {
+			"workspace_path": {
+				"type": "string",
+				"value": "https://adb-7405608798232977.17.azuredatabricks.net"
+			}
+		}
+	},
+	"location": "northeurope"
+}
