@@ -21,6 +21,10 @@
 			"blob_path": {
 				"type": "string",
 				"value": "https://rsclpdevneadls.dfs.core.windows.net"
+			},
+			"db_servername": {
+				"type": "string",
+				"value": "rsclp-dev-ne-server.database.windows.net"
 			}
 		}
 	},
