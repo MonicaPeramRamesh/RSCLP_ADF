@@ -1,0 +1,34 @@
+{
+	"name": "AzureDatabricks_ls",
+	"properties": {
+		"parameters": {
+			"cluster_version": {
+				"type": "string"
+			},
+			"cluster_nodetype": {
+				"type": "string"
+			},
+			"workspace_path": {
+				"type": "string"
+			},
+			"workspace_id": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "@linkedService().workspace_path",
+			"authentication": "MSI",
+			"workspaceResourceId": "@linkedService().workspace_id",
+			"newClusterNodeType": "@linkedService().cluster_nodetype",
+			"newClusterNumOfWorker": "1",
+			"newClusterSparkEnvVars": {
+				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+			},
+			"newClusterVersion": "@linkedService().cluster_version",
+			"clusterOption": "Fixed",
+			"newClusterInitScripts": []
+		}
+	}
+}
