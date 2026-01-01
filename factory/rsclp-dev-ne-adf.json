@@ -25,6 +25,10 @@
 			"db_servername": {
 				"type": "string",
 				"value": "rsclp-dev-ne-server.database.windows.net"
+			},
+			"db_name": {
+				"type": "string",
+				"value": "rsclp-dev-ne-db"
 			}
 		}
 	},
