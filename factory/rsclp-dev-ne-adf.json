@@ -12,7 +12,7 @@
 			},
 			"cluster_nodetype": {
 				"type": "string",
-				"value": "Standard_D2s_v3"
+				"value": "Standard_D2ads_v6"
 			},
 			"keyvault_url": {
 				"type": "string",
