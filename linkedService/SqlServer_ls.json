@@ -4,13 +4,22 @@
 		"parameters": {
 			"db_username": {
 				"type": "string"
+			},
+			"db_servername": {
+				"type": "string"
+			},
+			"db_name": {
+				"type": "string"
+			},
+			"keyvault_url": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
 		"type": "SqlServer",
 		"typeProperties": {
-			"server": "rsmas-dev-ne-server.database.windows.net",
-			"database": "rsmas-dev-ne-db",
+			"server": "@{linkedService().db_servername}",
+			"database": "@{linkedService().db_name}",
 			"encrypt": "optional",
 			"trustServerCertificate": false,
 			"authenticationType": "SQL",
@@ -19,9 +28,15 @@
 				"type": "AzureKeyVaultSecret",
 				"store": {
 					"referenceName": "AzureKeyVault_ls",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"keyvault_url": {
+							"value": "@linkedService().keyvault_url",
+							"type": "Expression"
+						}
+					}
 				},
-				"secretName": "rsmas-db-password"
+				"secretName": "rsclp-db-password"
 			}
 		}
 	}
