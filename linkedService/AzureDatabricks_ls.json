@@ -1,0 +1,29 @@
+{
+	"name": "AzureDatabricks_ls",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-7405608798232977.17.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault_ls",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"keyvault_url": {
+							"value": "https://rsclp-dev-ne-kv.vault.azure.net/",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": "adf-token"
+			},
+			"newClusterNodeType": "Standard_D2ads_v6",
+			"newClusterNumOfWorker": "1",
+			"newClusterVersion": "17.3.x-scala2.13",
+			"clusterOption": "Fixed",
+			"newClusterInitScripts": []
+		}
+	}
+}
