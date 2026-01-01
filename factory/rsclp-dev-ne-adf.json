@@ -9,6 +9,10 @@
 			"cluster_version": {
 				"type": "string",
 				"value": "9.1.x-scala2.12"
+			},
+			"cluster_nodetype": {
+				"type": "string",
+				"value": "Standard_D2s_v3"
 			}
 		}
 	},
