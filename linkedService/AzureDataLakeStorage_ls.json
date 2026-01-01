@@ -1,10 +1,15 @@
 {
 	"name": "AzureDataLakeStorage_ls",
 	"properties": {
+		"parameters": {
+			"blob_path": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "AzureBlobFS",
 		"typeProperties": {
-			"url": "https://rsmasdevneadls.dfs.core.windows.net/"
+			"url": "@{linkedService().blob_path}"
 		}
 	}
 }
