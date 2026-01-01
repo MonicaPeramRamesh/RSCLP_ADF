@@ -17,6 +17,10 @@
 			"keyvault_url": {
 				"type": "string",
 				"value": "https://rsclp-dev-ne-kv.vault.azure.net/"
+			},
+			"blob_path": {
+				"type": "string",
+				"value": "https://rsclpdevneadls.dfs.core.windows.net"
 			}
 		}
 	},
