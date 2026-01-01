@@ -1,10 +1,15 @@
 {
 	"name": "AzureDatabricks_ls",
 	"properties": {
+		"parameters": {
+			"workspace_path": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://adb-7405608798232977.17.azuredatabricks.net",
+			"domain": "@linkedService().workspace_path",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
