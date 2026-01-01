@@ -5,6 +5,10 @@
 			"workspace_path": {
 				"type": "string",
 				"value": "https://adb-7405608798232977.17.azuredatabricks.net"
+			},
+			"cluster_version": {
+				"type": "string",
+				"value": "9.1.x-scala2.12"
 			}
 		}
 	},
