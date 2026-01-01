@@ -13,6 +13,10 @@
 			"cluster_nodetype": {
 				"type": "string",
 				"value": "Standard_D2s_v3"
+			},
+			"keyvault_url": {
+				"type": "string",
+				"value": "https://rsclp-dev-ne-kv.vault.azure.net/"
 			}
 		}
 	},
