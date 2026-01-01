@@ -32,7 +32,7 @@
 			},
 			"workspace_id": {
 				"type": "string",
-				"value": "/subscriptions/487d907f-fc50-4b32-9188-cd4ad874c409/resourceGroups/rsclp-dev-ne-rg/providers/Microsoft.KeyVault/vaults/rsclp-dev-ne-kv"
+				"value": "/subscriptions/487d907f-fc50-4b32-9188-cd4ad874c409/resourceGroups/rsclp-dev-ne-rg/providers/Microsoft.Databricks/workspaces/rsclp-dev-ne-adb"
 			}
 		}
 	},
