@@ -1,0 +1,9 @@
+{
+	"name": "rsclp-dev-ne-adf",
+	"location": "northeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "35f74019-d86b-4d6c-95ad-e73d3f05f0d3",
+		"tenantId": "7ba68095-ffbb-46c2-86ca-19fb3c15a3b6"
+	}
+}
