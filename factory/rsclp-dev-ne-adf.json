@@ -8,7 +8,7 @@
 			},
 			"cluster_version": {
 				"type": "string",
-				"value": "9.1.x-scala2.12"
+				"value": "17.3.x-scala2.13"
 			},
 			"cluster_nodetype": {
 				"type": "string",
