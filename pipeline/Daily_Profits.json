@@ -14,9 +14,6 @@
 					"secureInput": false
 				},
 				"userProperties": [],
-				"typeProperties": {
-					"jobId": "348733752161984"
-				},
 				"linkedServiceName": {
 					"referenceName": "AzureDatabricks_ls",
 					"type": "LinkedServiceReference",
@@ -27,6 +24,14 @@
 						},
 						"cluster_nodetype": {
 							"value": "@pipeline().globalParameters.cluster_nodetype",
+							"type": "Expression"
+						},
+						"workspace_path": {
+							"value": "@pipeline().globalParameters.workspace_path",
+							"type": "Expression"
+						},
+						"keyvault_url": {
+							"value": "@pipeline().globalParameters.keyvault_url",
 							"type": "Expression"
 						}
 					}
