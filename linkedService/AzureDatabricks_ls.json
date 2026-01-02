@@ -7,14 +7,20 @@
 			},
 			"cluster_nodetype": {
 				"type": "string"
+			},
+			"workspace_path": {
+				"type": "string"
+			},
+			"workspace_id": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://adb-7405608798232977.17.azuredatabricks.net",
+			"domain": "@linkedService().workspace_path",
 			"authentication": "MSI",
-			"workspaceResourceId": "/subscriptions/487d907f-fc50-4b32-9188-cd4ad874c409/resourceGroups/rsclp-dev-ne-rg/providers/Microsoft.Databricks/workspaces/rsclp-dev-ne-adb",
+			"workspaceResourceId": "@linkedService().workspace_id",
 			"newClusterNodeType": "@linkedService().cluster_nodetype",
 			"newClusterNumOfWorker": "1",
 			"newClusterSparkEnvVars": {
