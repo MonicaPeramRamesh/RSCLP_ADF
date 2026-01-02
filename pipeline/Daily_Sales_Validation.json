@@ -164,7 +164,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"jobId": "445778795146334"
+								"jobId": "289571719948273"
 							},
 							"linkedServiceName": {
 								"referenceName": "AzureDatabricks_ls",
@@ -218,6 +218,18 @@
 								"parameters": {
 									"db_username": {
 										"value": "@pipeline().globalParameters.db_username",
+										"type": "Expression"
+									},
+									"db_servername": {
+										"value": "@pipeline().globalParameters.db_servername",
+										"type": "Expression"
+									},
+									"db_name": {
+										"value": "@pipeline().globalParameters.db_name",
+										"type": "Expression"
+									},
+									"keyvault_url": {
+										"value": "@pipeline().globalParameters.keyvault_url",
 										"type": "Expression"
 									}
 								}
