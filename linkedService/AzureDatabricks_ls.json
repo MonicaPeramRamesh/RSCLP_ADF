@@ -7,12 +7,6 @@
 			},
 			"cluster_nodetype": {
 				"type": "string"
-			},
-			"workspace_path": {
-				"type": "string"
-			},
-			"workspace_id": {
-				"type": "string"
 			}
 		},
 		"annotations": [],
