@@ -4,7 +4,7 @@
 		"globalParameters": {
 			"workspace_path": {
 				"type": "string",
-				"value": "https://adb-7405608798232977.17.azuredatabricks.net"
+				"value": "https://adb-7405608798232977.17.azuredatabricks.net/jobs"
 			},
 			"cluster_version": {
 				"type": "string",
